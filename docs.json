@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "theme": "linden",
+  "name": "Performance Peru Data Warehouse Guide",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#FF4500",
+    "light": "#C71585",
+    "dark": "#C71585"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/performanceperu_favicon.jpg",
   "navigation": {
     "tabs": [
       {
@@ -84,8 +84,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/performance-logo-white.svg",
+    "dark": "/logo/performance-logo-black.svg"
   },
   "navbar": {
     "links": [

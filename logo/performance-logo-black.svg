@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 177 24" width="177" height="24">
+  <!-- Sin fondo (transparente) -->
+  
+  <!-- Gráfico de edificios/barras interconectadas (3 torres) -->
+  <g>
+    <!-- Torre 1 (media, gris, con pendiente hacia la derecha) -->
+    <path d="M 0 24 L 0 10 L 8 6 L 8 24" 
+          fill="none" stroke="#808080" stroke-width="0.8" stroke-linejoin="miter"/>
+    
+    <!-- Torre 2 (más pequeña, roja, con pendiente hacia la derecha) -->
+    <path d="M 5 24 L 5 14 L 13 10 L 13 24" 
+          fill="none" stroke="#e63946" stroke-width="0.8" stroke-linejoin="miter"/>
+    
+    <!-- Torre 3 (la más grande, blanca, con pendiente hacia la IZQUIERDA) -->
+    <path d="M 10 24 L 10 0 L 18 4 L 18 24" 
+          fill="none" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="miter"/>
+    
+    <!-- Línea base -->
+    <line x1="0" y1="24" x2="18" y2="24" stroke="#ffffff" stroke-width="0.8"/>
+  </g>
+  
+  <!-- Texto PERFORMANCE en blanco -->
+  <text x="25" y="18" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="900" fill="#ffffff" letter-spacing="1">PERFORMANCE</text>
+</svg>
