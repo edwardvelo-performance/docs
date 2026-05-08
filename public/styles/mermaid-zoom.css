@@ -1,0 +1,53 @@
+.mint-mermaid-wrapper {
+  position: relative;
+  margin: 1.5rem 0;
+  background: var(--sl-color-bg-inside-code, #f6f8fa);
+  border-radius: 8px;
+  border: 1px solid var(--sl-color-gray-3, #e1e4e8);
+  overflow: hidden;
+}
+
+.mint-mermaid-wrapper .mermaid {
+  overflow: auto;
+  max-height: 700px;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.mint-mermaid-wrapper .mermaid svg {
+  max-width: none !important;
+  min-width: 600px;
+}
+
+.mint-mermaid-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.7rem;
+  color: var(--sl-color-gray-3, #888);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .mint-mermaid-wrapper .mermaid {
+    max-height: 400px;
+  }
+  
+  .mint-mermaid-wrapper .mermaid svg {
+    min-width: 400px;
+  }
+}
+
+@media print {
+  .mint-mermaid-wrapper .mermaid {
+    max-height: none;
+    overflow: visible;
+  }
+  
+  .mint-mermaid-wrapper .mermaid svg {
+    max-width: 100% !important;
+    min-width: auto;
+  }
+}

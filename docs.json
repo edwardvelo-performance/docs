@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "linden",
   "name": "Performance Peru Data Warehouse Guide",
+  "theme": "linden",
   "colors": {
     "primary": "#FF4500",
     "light": "#C71585",
@@ -11,112 +11,166 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Lógica de Negocio",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Visión General",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "business_logic/overview",
+              "business_logic/glossary",
+              "business_logic/config_reference"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Capa 1: Extract",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "business_logic/01_extract/jdbc_extraction",
+              "business_logic/01_extract/source_tables_catalog"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Capa 2: Transform BD",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "business_logic/02_transform_bd/overview"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Transform BD - Evolta",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
+              "business_logic/02_transform_bd/evolta/bd_clientes",
+              "business_logic/02_transform_bd/evolta/bd_clientes_fechas_extension",
+              "business_logic/02_transform_bd/evolta/bd_empresa",
+              "business_logic/02_transform_bd/evolta/bd_grupo_inmobiliario",
+              "business_logic/02_transform_bd/evolta/bd_interacciones",
+              "business_logic/02_transform_bd/evolta/bd_metas",
+              "business_logic/02_transform_bd/evolta/bd_procesos",
+              "business_logic/02_transform_bd/evolta/bd_proformas",
+              "business_logic/02_transform_bd/evolta/bd_proyectos",
+              "business_logic/02_transform_bd/evolta/bd_proyecto_extension",
+              "business_logic/02_transform_bd/evolta/bd_subdivision",
+              "business_logic/02_transform_bd/evolta/bd_team_performance",
+              "business_logic/02_transform_bd/evolta/bd_tipo_interaccion",
+              "business_logic/02_transform_bd/evolta/bd_unidades",
+              "business_logic/02_transform_bd/evolta/bd_usuarios"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Transform BD - Sperant",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "business_logic/02_transform_bd/sperant/bd_clientes",
+              "business_logic/02_transform_bd/sperant/bd_clientes_fechas_extension",
+              "business_logic/02_transform_bd/sperant/bd_empresa",
+              "business_logic/02_transform_bd/sperant/bd_finanzas",
+              "business_logic/02_transform_bd/sperant/bd_grupo_inmobiliario",
+              "business_logic/02_transform_bd/sperant/bd_interacciones",
+              "business_logic/02_transform_bd/sperant/bd_metas",
+              "business_logic/02_transform_bd/sperant/bd_pagos",
+              "business_logic/02_transform_bd/sperant/bd_procesos",
+              "business_logic/02_transform_bd/sperant/bd_proformas",
+              "business_logic/02_transform_bd/sperant/bd_proyectos",
+              "business_logic/02_transform_bd/sperant/bd_proyecto_extension",
+              "business_logic/02_transform_bd/sperant/bd_subdivision",
+              "business_logic/02_transform_bd/sperant/bd_team_performance",
+              "business_logic/02_transform_bd/sperant/bd_tipo_interaccion",
+              "business_logic/02_transform_bd/sperant/bd_unidades",
+              "business_logic/02_transform_bd/sperant/bd_usuarios"
+            ]
+          },
+          {
+            "group": "Transform BD - Joined",
+            "pages": [
+              "business_logic/02_transform_bd/joined/bd_clientes",
+              "business_logic/02_transform_bd/joined/bd_clientes_fechas_extension",
+              "business_logic/02_transform_bd/joined/bd_empresa",
+              "business_logic/02_transform_bd/joined/bd_grupo_inmobiliario",
+              "business_logic/02_transform_bd/joined/bd_interacciones",
+              "business_logic/02_transform_bd/joined/bd_metas",
+              "business_logic/02_transform_bd/joined/bd_procesos",
+              "business_logic/02_transform_bd/joined/bd_proformas",
+              "business_logic/02_transform_bd/joined/bd_proyectos",
+              "business_logic/02_transform_bd/joined/bd_proyectos_mapping",
+              "business_logic/02_transform_bd/joined/bd_proyecto_extension",
+              "business_logic/02_transform_bd/joined/bd_subdivision",
+              "business_logic/02_transform_bd/joined/bd_team_performance",
+              "business_logic/02_transform_bd/joined/bd_tipo_interaccion",
+              "business_logic/02_transform_bd/joined/bd_unidades",
+              "business_logic/02_transform_bd/joined/bd_usuarios"
+            ]
+          },
+          {
+            "group": "Capa 3: Load BD",
+            "pages": [
+              "business_logic/03_load_bd/spark_to_bigquery"
+            ]
+          },
+          {
+            "group": "Capa 4: Dashboard DDL",
+            "pages": [
+              "business_logic/04_dashboard_ddl/table_schemas"
+            ]
+          },
+          {
+            "group": "Capa 5: Dashboard Calc",
+            "pages": [
+              "business_logic/05_dashboard_calc/overview",
+              "business_logic/05_dashboard_calc/acciones_cliente",
+              "business_logic/05_dashboard_calc/bigdata",
+              "business_logic/05_dashboard_calc/canal_digital",
+              "business_logic/05_dashboard_calc/cliente_diario_mensual",
+              "business_logic/05_dashboard_calc/clientes_vencidos",
+              "business_logic/05_dashboard_calc/fact_kpis",
+              "business_logic/05_dashboard_calc/funnel_post_procesamiento",
+              "business_logic/05_dashboard_calc/kpis_embudo",
+              "business_logic/05_dashboard_calc/kpis_medio_captacion",
+              "business_logic/05_dashboard_calc/kpis_proforma",
+              "business_logic/05_dashboard_calc/metas_y_blacklist",
+              "business_logic/05_dashboard_calc/perfil_cliente",
+              "business_logic/05_dashboard_calc/prospectos_data",
+              "business_logic/05_dashboard_calc/proyecto_data",
+              "business_logic/05_dashboard_calc/stock_comercial",
+              "business_logic/05_dashboard_calc/visitas_data"
+            ]
+          },
+          {
+            "group": "Dashboard Calc - Detalles",
+            "pages": [
+              "business_logic/05_dashboard_calc/detalles/overview",
+              "business_logic/05_dashboard_calc/detalles/citas",
+              "business_logic/05_dashboard_calc/detalles/prospectos",
+              "business_logic/05_dashboard_calc/detalles/separaciones",
+              "business_logic/05_dashboard_calc/detalles/ventas",
+              "business_logic/05_dashboard_calc/detalles/visitas"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/performance-logo-white.svg",
     "dark": "/logo/performance-logo-black.svg"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+  "anchors": {
+    "title": "Lógica de Negocio",
+    "icon": "database",
+    "href": "/business_logic/overview"
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/performanceperu"
     }
+  },
+  "styling": {
+    "colors": {
+      "accent1": "#FF4500",
+      "accent2": "#C71585"
+    },
+    "topbar": {
+      "backgroundColor": "#1a1a2e"
+    },
+    "css": "/styles/mermaid-zoom.css"
+  },
+  "liveView": {
+    "enabled": true
   }
 }
