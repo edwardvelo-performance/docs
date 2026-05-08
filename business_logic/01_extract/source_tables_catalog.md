@@ -213,5 +213,5 @@ Lista completa (ambas fuentes): `bd_empresa`, `bd_proyectos`, `bd_proyecto_exten
 ## Referencias cruzadas
 
 - **Cómo se leen estas tablas:** `01_extract/jdbc_extraction.md`.
-- **Qué transformaciones se aplican:** `02_transform_bd/{evolta,sperant,joined}/\<bd_tabla\>.md`.
+- **Qué transformaciones se aplican:** `02_transform_bd/{evolta,sperant,joined}/<bd_tabla>.md`.
 - **Cómo se cargan a BigQuery:** `03_load_bd/spark_to_bigquery.md`.

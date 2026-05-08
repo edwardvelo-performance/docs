@@ -1,11 +1,11 @@
-# `kpis_medio_comercial` y `kpis_medio_comercial_detalle`
+# `kpis_medio_embudo_comercial` y `kpis_medio_embudo_comercial_detalle`
 
 ## ¿Qué representan?
 
 Variantes de los KPIs del embudo, pero **agrupados por medio de captación** en lugar de solo por proyecto.
 
-- `kpis_medio_comercial` — agrupa por categoría de medio (META, WEB, PORTALES, TIKTOK, MAILING, OTROS).
-- `kpis_medio_comercial_detalle` — desagrega aún más, por canal específico dentro de cada categoría (ej. dentro de META: Facebook Ads, Instagram Ads).
+- `kpis_medio_embudo_comercial` — agrupa por categoría de medio (META, WEB, PORTALES, TIKTOK, MAILING, OTROS).
+- `kpis_medio_embudo_comercial_detalle` — desagrega aún más, por canal específico dentro de cada categoría (ej. dentro de META: Facebook Ads, Instagram Ads).
 
 Sirven para responder preguntas tipo "¿cuántas ventas vinieron de Facebook este mes?" o "¿cuál es el costo por venta de cada canal?".
 
@@ -15,8 +15,8 @@ Sirven para responder preguntas tipo "¿cuántas ventas vinieron de Facebook est
 
 | Tabla | Granularidad |
 |---|---|
-| `kpis_medio_comercial` | (proyecto, mes, categoría_medio) |
-| `kpis_medio_comercial_detalle` | (proyecto, mes, categoría_medio, canal) |
+| `kpis_medio_embudo_comercial` | (proyecto, mes, categoría_medio) |
+| `kpis_medio_embudo_comercial_detalle` | (proyecto, mes, categoría_medio, canal) |
 
 ---
 
@@ -39,13 +39,12 @@ Mismas tablas que `kpis_embudo_comercial`. La única diferencia es **agregar al 
 ---
 
 ## Lógica
-
 ```mermaid
 flowchart LR
     A["Misma logica que kpis_embudo"] --> B["Group by adicional<br/>por medio_captacion_categoria"]
-    B --> C["kpis_medio_comercial"]
+    B --> C["kpis_medio_embudo_comercial"]
     A --> D["Group by adicional<br/>por medio_captacion_categoria + canal"]
-    D --> E["kpis_medio_comercial_detalle"]
+    D --> E["kpis_medio_embudo_comercial_detalle"]
 ```
 
 **Lo que cambia respecto al embudo:**
@@ -73,8 +72,8 @@ COALESCE(
 ```
 
 ### Detalle vs categoría
-- En `kpis_medio_comercial`: solo se queda la **categoría** (META, WEB, etc.).
-- En `kpis_medio_comercial_detalle`: además se conserva el **canal puntual** dentro de la categoría (ej. "Facebook Ads", "Instagram Ads", "Web Banner").
+- En `kpis_medio_embudo_comercial`: solo se queda la **categoría** (META, WEB, etc.).
+- En `kpis_medio_embudo_comercial_detalle`: además se conserva el **canal puntual** dentro de la categoría (ej. "Facebook Ads", "Instagram Ads", "Web Banner").
 
 ---
 
@@ -82,8 +81,8 @@ COALESCE(
 
 | Tabla | Columnas extra (vs embudo) |
 |---|---|
-| `kpis_medio_comercial` | `medio_captacion_categoria` |
-| `kpis_medio_comercial_detalle` | `medio_captacion_categoria` + `medio_captacion` |
+| `kpis_medio_embudo_comercial` | `medio_captacion_categoria` |
+| `kpis_medio_embudo_comercial_detalle` | `medio_captacion_categoria` + `medio_captacion` |
 
 ---
 

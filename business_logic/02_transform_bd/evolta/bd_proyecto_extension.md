@@ -41,7 +41,7 @@ flowchart LR
 |---|---|
 | `id` | ID autoincremental |
 | `id_proyecto` | Referencia al proyecto |
-| `nombre` | `\<nombre\>_Evolta` |
+| `nombre` | `<nombre>_Evolta` |
 | `codigo` | Igual al nombre |
 | `id_crm` | 2 (Evolta) |
 | `fecha_hora_creacion_aud`, `fecha_hora_modificacion_aud` | Auditoría |

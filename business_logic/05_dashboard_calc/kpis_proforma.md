@@ -1,4 +1,4 @@
-# `kpis_medio_proforma_comercial`
+# `kpis_medio_proforma_embudo_comercial`
 
 ## ¿Qué representa?
 

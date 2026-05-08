@@ -1,30 +1,30 @@
-# `canal_digital`
+# `kpis_canal_digital`
 
 ## ¿Qué representa?
 
-KPIs específicos del **canal digital** (META, WEB, PORTALES, TIKTOK, MAILING). Mide leads, costos, conversiones y eficiencia por canal y campaña.
+Una tabla agregada de KPIs comerciales, enfocada en comparar el **rendimiento total vs el rendimiento atribuido a canales digitales** (META, WEB, PORTALES, TIKTOK, MAILING).
 
-Es el dashboard usado por marketing para evaluar performance de campañas digitales.
+A diferencia de otras tablas que agrupan por canal específico, esta tabla consolida métricas pre-calculadas en columnas separadas (ej. `VENTAS_TOTALES` vs `VENTAS_DIGITALES`, `LEADS_PAUTA` vs `LEADS_PORTALES`), facilitando el análisis rápido de aportación digital a nivel macro.
 
 ---
 
 ## Granularidad
 
-```
-(proyecto, fecha o mes, canal_digital, campaña)
-```
+**Una fila = Un Proyecto + Un Mes (`mes_anio`)**
 
 ---
 
 ## Métricas que calcula
 
-- `LEADS` — cantidad de leads únicos.
-- `LEADS_CALIFICADOS` — leads que pasaron filtros mínimos (con datos de contacto válidos).
-- `VISITAS_LEAD` — visitas atribuidas a leads digitales.
-- `CITAS_LEAD` — citas atribuidas a leads digitales.
-- `SEPARACIONES_LEAD` — separaciones cuyo origen es lead digital.
-- `VENTAS_LEAD` — ventas cuyo origen es lead digital.
-- Tasas de conversión derivadas (lead → visita, visita → separación, etc.).
+Esta tabla enfrenta métricas globales con métricas estrictamente digitales:
+
+| Categoría | Columnas |
+|---|---|
+| **Separaciones** | `SEPARACIONES_TOTALES`, `SEPARACIONES_DIGITALES` |
+| **Ventas** | `VENTAS_TOTALES`, `VENTAS_DIGITALES` |
+| **Visitas** | `VISITAS_DIGITALES` |
+| **Leads** | `LEADS_TOTALES`, `LEADS_PAUTA` (solo META/WEB), `LEADS_PORTALES` (solo PORTALES), `LEADS_UNICOS` (excluye recontactos y duplicados) |
+| **Citas** | `CITAS_GENERADAS`, `CITAS_CONCRETADAS` (asociadas a leads digitales) |
 
 ---
 
@@ -32,40 +32,62 @@ Es el dashboard usado por marketing para evaluar performance de campañas digita
 
 | Tabla | Aporta |
 |---|---|
-| `bd_clientes` + `bd_clientes_fechas_extension` | Para identificar el canal y campaña |
-| `bd_interacciones` | Visitas y citas |
-| `bd_procesos` | Separaciones y ventas |
-| `bd_proformas` | Proformas |
+| `bd_clientes` + `bd_clientes_fechas_extension` | Para contar leads y segmentarlos según su categoría de captación |
+| `bd_interacciones` | Visitas (digitales) y Citas |
+| `bd_procesos` | Separaciones y ventas (totales y digitales cruzando con clientes) |
 
 ---
 
 ## Lógica
 
+### Diagrama de flujo
+
 ```mermaid
-flowchart LR
-    A["Filtro: medio_captacion_categoria<br/>en META, WEB, PORTALES, TIKTOK, MAILING"] --> B["Group by:<br/>canal + utm_campaign"]
-    B --> C["Calcular metricas digitales"]
-    C --> D["INSERT INTO canal_digital"]
+flowchart TD
+    A["Fechas mensuales<br/>CROSS JOIN<br/>Proyectos"] --> G["Grilla maestra (Proyecto x Mes)"]
+
+    C1["conteo_leads<br/>(todos los digitales)"] --> LEFTJOIN
+    C2["conteo_leads_pauta<br/>(META, WEB)"] --> LEFTJOIN
+    C3["conteo_leads_portales<br/>(PORTALES)"] --> LEFTJOIN
+    C4["conteo_leads_unicos<br/>(sin recontactos)"] --> LEFTJOIN
+    
+    P1["conteo_separaciones<br/>(totales)"] --> LEFTJOIN
+    P2["conteo_separaciones_digitales<br/>(JOIN con cliente digital)"] --> LEFTJOIN
+    
+    V1["conteo_ventas<br/>(totales)"] --> LEFTJOIN
+    V2["conteo_ventas_digital<br/>(JOIN con cliente digital)"] --> LEFTJOIN
+
+    I1["conteo_visitas<br/>(digitales)"] --> LEFTJOIN
+    I2["conteo_citas_generadas/concretadas"] --> LEFTJOIN
+
+    G --> LEFTJOIN["Left joins por proyecto y mes"]
+    LEFTJOIN --> INSERT["INSERT INTO kpis_canal_digital"]
 ```
 
-### Reglas clave
-1. Solo se incluyen clientes cuyo `medio_captacion_categoria` esté en la lista de canales digitales.
-2. La campaña se obtiene de `utm_campaign` (o "SIN CAMPAÑA" si no hay).
-3. Las conversiones se atribuyen al canal del cliente que originó el evento.
+### Reglas de Negocio Clave
 
----
+1. **Atribución de ventas/separaciones a digital**:
+   Se cruza `bd_procesos` con `bd_clientes`. Si el cliente original fue captado por un medio categorizado como META, WEB, PORTALES, TIKTOK o MAILING, ese proceso suma a la columna `_DIGITALES`.
 
-## Cosas a tener en cuenta
+2. **Tipos de Leads**:
+   - `LEADS_TOTALES`: Todo lo categorizado como digital.
+   - `LEADS_PAUTA`: Solo `META` y `WEB`.
+   - `LEADS_PORTALES`: Solo `PORTALES`.
+   - `LEADS_UNICOS`: Excluye leads cuyo subestado es `RECONTACTO` o `DUPLICADO`.
 
-- **No incluye costos de pauta.** Esta tabla solo tiene leads y conversiones. Para ROI hay que cruzar con otra fuente externa.
-- **Categorías digitales hardcoded.** Si negocio agrega WhatsApp Business o Twitter Ads, hay que sumar la categoría a la lista.
-- **`utm_campaign` puede tener valores con tildes, espacios, mayúsculas inconsistentes.** Antes de hacer reportes, conviene normalizar.
+3. **Restricciones de Procesos (Separaciones y Ventas)**:
+   - Solo tipo de unidad DEPARTAMENTO o CASA.
+   - Excluye caídas por `ERROR DATA` o `ERROR EN REFINANCIAMIENTO`.
+   - Excluye ventas/separaciones generadas por usuarios de prueba (ej. `nreyes`, `VITO HUILLCA`).
+
+4. **Visitas Digitales**:
+   Interacciones donde el cliente sea digital, con origen distinto a 'SOLO PROFORMA' y que sea una "visita única del mes".
 
 ---
 
 ## Referencia al código
 
-- Evolta: `calculate_canal_digital_evolta(...)`.
-- Sperant: `calculate_canal_digital_sperant(...)`.
-- Joined: `calculate_canal_digital_sperant_evolta(...)`.
-- Schema: `dashboard_tables_helper.py` → `create_canal_digital_table(...)`.
+- Origen Evolta: `dashboard_operations_evolta.py` → `calculate_canal_digital_evolta(...)`
+- Origen Sperant: `dashboard_operations_sperant.py` → `calculate_canal_digital_sperant(...)`
+- Origen Joined: `dashboard_operations_sperant_evolta_prueba2.py` → `calculate_canal_digital_sperant_evolta(...)`
+- Inserción en: `dashboard_data.kpis_canal_digital`

@@ -73,7 +73,6 @@ graph TD
 
     G --- G1["CONTACTADO"]
     G --- G2["DEVOLUCION"]
-    G --- G3["RECONTACTO"]
     G --- G4["SEPARACION"]
     G --- G5["VENTA"]
     G --- G6["VISITA"]
@@ -82,13 +81,14 @@ graph TD
     NG --- NG2["POR CONTACTAR"]
 
     D --- D1["DUPLICADO"]
+    D --- D2["RECONTACTO"]
 ```
 
 | sub_estado CRM | NUEVO_SUB_ESTADO | ORDEN_SUBESTADO |
 |---|---|---|
 | CONTACTADO | GESTIONADO | 3 |
 | DEVOLUCION | GESTIONADO | 3 |
-| RECONTACTO | GESTIONADO | 3 |
+| RECONTACTO | DUPLICADO | 3 |
 | SEPARACION | GESTIONADO | 3 |
 | VENTA | GESTIONADO | 3 |
 | VISITA | GESTIONADO | 3 |

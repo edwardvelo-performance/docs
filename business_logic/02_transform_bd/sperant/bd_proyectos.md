@@ -43,7 +43,7 @@ Adicionalmente se usan dos mappings auxiliares (calculados antes en el pipeline)
 
 7. **Geografía pasada a mayúsculas:** `pais`, `departamento`, `distrito`, `provincia`, `tipo_proyecto`, `estado_construccion` se uppercase si vienen con valor.
 
-8. **`id_crm` construido como texto.** Se concatena `\<codigo\>_Sperant` (ej. "TS001_Sperant") para identificar fácilmente que viene de Sperant.
+8. **`id_crm` construido como texto.** Se concatena `<codigo>_Sperant` (ej. "TS001_Sperant") para identificar fácilmente que viene de Sperant.
 
 9. **Auditoría:** dos timestamps al momento de la corrida.
 
@@ -83,7 +83,7 @@ flowchart LR
 | `fecha_inicio_venta` | Cuándo empezó la venta | `proyectos.fecha_inicio_venta` |
 | `razon_social`, `direccion_razon_social`, `ruc_razon_social` | Datos legales | `proyectos.*` |
 | `proyecto_codigo` | Código del proyecto | `proyectos.codigo` |
-| `id_crm` | "\<codigo\>_Sperant" | construido |
+| `id_crm` | "{proyecto_codigo}_Sperant" | construido |
 
 ---
 

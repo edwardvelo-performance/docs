@@ -1,4 +1,4 @@
-# Documentación Lógica y Reglas de Negocio — ETL `infra/src/etl/`
+# Documentación — Business Logic
 
 > Esta carpeta documenta **qué hace cada capa del ETL**, **por qué existe cada tabla**, y **qué reglas de negocio aplica cada transformación**.
 > Para detalles de implementación / código → leer los archivos `.py` directamente.
@@ -193,7 +193,7 @@ graph LR
 | `bd_metas` | Metas mensuales por proyecto (CSV externo) |
 | `bd_team_performance` | Indicadores por equipo / asesor |
 
-> Detalle completo de cada tabla: ver `02_transform_bd/{evolta,sperant,joined}/\<tabla\>.md`.
+> Detalle completo de cada tabla: ver `02_transform_bd/{evolta,sperant,joined}/<tabla>.md`.
 
 ---
 
@@ -273,10 +273,10 @@ docs/business_logic/
 │   └── source_tables_catalog.md
 ├── 02_transform_bd/
 │   ├── README.md
-│   ├── evolta/\<tabla\>.md
-│   ├── sperant/\<tabla\>.md
+│   ├── evolta/<tabla>.md
+│   ├── sperant/<tabla>.md
 │   └── joined/
-│       ├── \<tabla\>.md
+│       ├── <tabla>.md
 │       └── bd_proyectos_mapping.md   <- mapeo Evolta↔Sperant (CSV)
 ├── 03_load_bd/
 │   └── spark_to_bigquery.md
@@ -318,29 +318,29 @@ docs/business_logic/
 Cada `.md` de tabla individual sigue este template:
 
 ```markdown
-# bd_\<nombre\> — \<fuente\>
+# bd_<nombre> — <fuente>
 
 ## Propósito de negocio
-\<qué representa, qué pregunta de negocio responde\>
+<qué representa, qué pregunta de negocio responde>
 
 ## Tabla(s) fuente
-\<schemas y tablas raw de las que se construye\>
+<schemas y tablas raw de las que se construye>
 
 ## Reglas de filtro / join
-\<filtros WHERE, condiciones JOIN, exclusiones\>
+<filtros WHERE, condiciones JOIN, exclusiones>
 
 ## Columnas calculadas
 | Columna | Fórmula | Por qué |
 |---|---|---|
 
 ## Output schema
-\<tipos finales BigQuery\>
+<tipos finales BigQuery>
 
 ## Consumidores downstream
-\<qué queries dashboard la usan\>
+<qué queries dashboard la usan>
 
 ## Notas / gotchas
-\<edge cases, divergencias entre fuentes, bugs históricos\>
+<edge cases, divergencias entre fuentes, bugs históricos>
 ```
 
 ---

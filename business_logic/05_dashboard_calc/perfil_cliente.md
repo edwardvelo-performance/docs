@@ -1,113 +1,107 @@
-# `perfil_cliente`
+# `perfil_cliente` — perfil demográfico por proceso comercial
 
 ## ¿Qué representa?
 
-Una vista **consolidada por cliente**: una fila por cliente con todos sus atributos demográficos, su historial comercial, último vendedor, último proyecto, estado actual.
+A pesar de su nombre, esta tabla **no** es un maestro de "una fila por cliente". En realidad, representa el **perfil demográfico de los clientes en el momento en que realizan un proceso comercial** (Proforma, Separación, Venta, etc.), estructurado a lo largo del tiempo (por mes) y por proyecto.
 
-Sirve para el módulo "perfil de cliente" del dashboard — cuando un asesor quiere ver toda la info de un cliente puntual.
+Sirve para los dashboards comerciales que buscan responder preguntas como: *"¿Cuál es el rango de edad o el estado civil de las personas que nos compraron (Ventas) o cotizaron (Proformas) en el proyecto X durante el mes Y?"*.
+
+---
+
+## ¿Por qué existe?
+
+Para analizar la conversión y el éxito comercial cruzado con la demografía. Al precalcular esta vista, se evita tener que hacer cruces pesados entre `bd_procesos` y `bd_clientes` en tiempo de visualización. 
+
+Permite a los tableros filtrar por `PROCESO` (ej. "VENTA") y ver de inmediato:
+- El género predominante.
+- El rango de edad.
+- El medio de captación (cómo se enteraron).
+- La profesión u ocupación de los compradores.
 
 ---
 
 ## Granularidad
 
-```
-Una fila = un cliente
-```
-
----
-
-## ¿De dónde vienen los datos?
-
-| Tabla | Aporta |
-|---|---|
-| `bd_clientes` | Base principal: datos personales y demográficos |
-| `bd_clientes_fechas_extension` | Eventos clave del cliente (captación, primera interacción) |
-| `bd_interacciones` | Para `total_interacciones`, `fecha_ultima_interaccion`, `ultimo_tipo_interaccion` |
-| `bd_procesos` | Para `tiene_separacion`, `tiene_venta` |
-| `bd_proformas` | Para conteo de proformas |
-| `bd_proyectos` | Para nombre del proyecto principal |
-| `bd_usuarios` | Para nombre del último vendedor |
+**Una fila = Un proceso comercial válido (Proforma, Separación, Venta, etc.) enriquecido con el perfil del cliente.**
 
 ---
 
 ## Lógica
 
+### Diagrama de flujo
+
 ```mermaid
 flowchart TD
-    A["bd_clientes"] --> J["Join con bd_proyectos por id_proyecto"]
-    A --> K["Join con bd_usuarios por id_usuario"]
+    A["fechas_mensuales<br/>(2017 a hoy)"] --> C["CROSS JOIN:<br/>proyectos_meses"]
+    B["bd_proyectos<br/>(activos)"] --> C
 
-    B["bd_interacciones"] --> AGG1["Agregaciones:<br/>count interacciones,<br/>max fecha,<br/>last tipo evento"]
+    D["bd_procesos<br/>(Proformas, Separaciones, Ventas)"] --> F["JOIN bd_clientes<br/>(para demografía)"]
+    E["bd_unidades<br/>(filtro depas/casas)"] --> F
+    
+    F --> G["procesos_detalle<br/>(Cálculo de Rango Edad y Mes)"]
 
-    C["bd_procesos"] --> AGG2["flags:<br/>tiene_separacion,<br/>tiene_venta"]
-
-    D["bd_proformas"] --> AGG3["count proformas"]
-
-    E["bd_clientes_fechas_extension"] --> CAP["Primera fecha de captacion<br/>+ medio + categoria"]
-
-    J --> F["Cliente enriquecido"]
-    K --> F
-    AGG1 --> F
-    AGG2 --> F
-    AGG3 --> F
-    CAP --> F
-
-    F --> R["INSERT INTO perfil_cliente"]
+    C --> H["LEFT JOIN procesos_detalle<br/>por proyecto y mes_anio"]
+    H --> I["Filtro: PROCESO is not null"]
+    I --> J["INSERT INTO perfil_cliente"]
 ```
+
+### Fuentes
+
+| Tabla fuente | Qué aporta |
+|---|---|
+| `bd_proyectos` / `bd_empresa` | Estructura base: `grupo_inmobiliario`, `nombre_empresa`, `team_performance`, proyectos activos. |
+| `bd_procesos` | El evento central: tipo de proceso (`PROFORMA`, `VENTA`, etc.), fechas para ubicar en el mes, `motivo_compra`, `distrito`. |
+| `bd_clientes` | El perfil de la persona: `genero`, `estado_civil`, `profesion`, `ocupacion` y cálculo de `rango_edad` según fecha de nacimiento. |
+| `bd_unidades` | Filtro para asegurar que el proceso fue sobre unidades tipo Departamento o Casa. |
+| `dashboard_data.metas_kpis` | Validar si el proyecto tiene visibilidad en las metas comerciales. |
 
 ---
 
 ## Métricas / atributos consolidados
 
-| Categoría | Columnas |
+| Categoría | Columnas principales |
 |---|---|
-| **Identificación** | `id_cliente`, IDs duales, `nombres`, `apellidos`, `tipo_documento`, `nrodocumento`, `correo`, `celular` |
-| **Demográficos** | `genero`, `estado_civil`, `pais_residencia`, `rango_edad`, `puesto`, `profesion` |
-| **Ubicación** | `direccion`, `departamento`, `provincia`, `distrito` |
-| **Captación** | `medio_captacion`, `agrupacion_medio_captacion`, `canal_entrada`, `fecha_registro`, UTMs |
-| **Estado actual** | `estado_cliente`, `estado_proceso`, `nivel_interes`, `ha_desistido`, `razon_desistimiento` |
-| **Actividad** | `total_interacciones`, `fecha_ultima_interaccion`, `ultimo_tipo_interaccion`, `proxima_tarea` |
-| **Comercial** | `ultimo_proyecto`, `proyectos_relacionados`, `ultimo_vendedor`, `tipo_financiamiento` |
-| **Flags** | `tiene_proforma`, `tiene_separacion`, `tiene_venta` |
+| **Estructura Proyecto** | `grupo_inmobiliario`, `nombre_empresa`, `team_performance`, `nombre_proyecto`, `is_visible`, `mes_anio` |
+| **Evento Comercial** | `PROCESO` (Proforma, Separación, Venta, etc.), `MOTIVO_COMPRA`, `DISTRITO` |
+| **Perfil Cliente** | `NOMBRE_CLIENTE`, `MEDIO_CAPTACION_CATEGORIA`, `GENERO`, `ESTADO_CIVIL`, `PUESTO`, `PROFESION`, `OCUPACION`, `RANGO_EDAD` |
 
 ---
 
 ## Reglas de negocio
 
-### 1. Una fila por cliente, sin importar cuántos proyectos vio
-Aunque un cliente haya visitado 5 proyectos, solo aparece una vez en perfil. Los proyectos relacionados se concatenan en `proyectos_relacionados`.
+### 1. Filtro de Procesos Válidos
+Solo se toman en cuenta procesos que sean: `'PROFORMA'`, `'SEPARACION'`, `'SEPARACION TEMPORAL'`, `'VENTA'`, o `'MINUTA'`. Se excluyen anulaciones explícitas (`fecha_anulacion is null`).
 
-### 2. "Último vendedor" es el del último proceso comercial
-Se ordena por fecha y se queda con el responsable más reciente.
+### 2. Filtro de Unidades
+El proceso debe estar asociado a una unidad cuyo tipo contenga `'DEPARTAMENTO'` o `'CASA'`.
 
-### 3. "Última interacción" considera todas las tablas
-- Última `bd_interacciones`.
-- Última `bd_procesos`.
-- Última `bd_proformas`.
-La fecha máxima de las tres.
+### 3. Asignación del Mes (`mes_anio`)
+El evento no se ubica por cuándo se creó el registro, sino por su fecha oficial según el proceso:
+- **PROFORMA:** `fecha_proforma`
+- **SEPARACION / SEPARACION TEMPORAL:** `fecha_inicio`
+- **VENTA / MINUTA:** `fecha_impresion_contrato`
 
-### 4. Apellidos
-- Evolta: `apellido_paterno` + `apellido_materno` separados (concatenados con espacio para mostrar).
-- Sperant: ambos campos tienen el mismo valor (toda la cadena de apellidos junta).
+### 4. Cálculo de Rango de Edad en el Momento del Proceso
+No se toma la edad actual del cliente, sino la edad **que tenía en la fecha del proceso**. Si la fecha de nacimiento es `1900-01-01` o nula, queda como `NULL`.
 
-### 5. UTMs
-Solo se conservan los del **primer registro**. Si el cliente vino por TikTok la primera vez y luego por Facebook, el UTM_SOURCE del perfil será `TIKTOK`.
+### 5. Exclusión de Responsables Dummy / Prueba
+Se excluyen procesos cuyos responsables consolidados sean cuentas de prueba o administración (ej. `'nreyes'`, `'VITO HUILLCA'`, etc.).
 
 ---
 
 ## Cosas a tener en cuenta
 
-- **Si un cliente tiene `correo` o `celular` duplicado pero distinto `id_cliente`, aparecen dos filas distintas.** No hay deduplicación por persona real.
-- **Filas con datos vacíos.** No todos los clientes tienen UTM, ni demográficos completos. Los dashboards deben manejar NULL.
-- **`fecha_actualizacion` se usa para detectar clientes "frescos".** Si un cliente no tiene actualización en X meses, puede entrar a `clientes_vencidos`.
-- **El perfil se reconstruye desde cero en cada corrida.** No hay historia — solo el snapshot actual.
+- **No es un maestro de clientes:** Si un cliente hizo 3 proformas y luego compró, aparecerá 4 veces en esta tabla (una por cada evento), con su demografía replicada.
+- **`PROCESO is not null`:** Aunque la consulta hace un `CROSS JOIN` de proyectos y meses (para tener un esqueleto completo), al final hace un `WHERE pd.PROCESO is not null`, por lo que **solo se guardan los meses donde realmente hubo procesos**.
+- **Cruce con metas:** Se usa la tabla `metas_kpis` (que viene de un Google Sheet) solo para levantar el flag `is_visible` (si el proyecto está siendo medido).
 
 ---
 
 ## Referencia al código
 
-- Evolta: `calculate_perfil_cliente_evolta(...)`.
-- Sperant: `calculate_perfil_cliente_sperant(...)`.
-- Joined: `calculate_perfil_cliente_sperant_evolta(...)`.
-- Schema: `dashboard_tables_helper.py` → `create_perfil_cliente_table(...)`.
-- SQL referenciado en `src/sql/dashboards/master/perfil_cliente_joined.sql` (versión SQL "como código").
+Como bien has identificado, hay 3 versiones de este cálculo dependiendo de la fuente de los datos (Evolta, Sperant o Joined):
+
+- Origen Evolta: `infra/src/etl/dashboard_operations_evolta.py` → `calculate_perfil_cliente_evolta(...)`
+- Origen Sperant: `infra/src/etl/dashboard_operations_sperant.py` → `calculate_perfil_cliente_sperant(...)`
+- Origen Joined: `infra/src/etl/dashboard_operations_sperant_evolta_prueba2.py` (y sin prueba) → `calculate_perfil_cliente_evolta_sperant(...)`
+- Definición de Schema: `infra/src/etl/dashboard_tables_helper.py` → `create_perfil_cliente_table(...)`

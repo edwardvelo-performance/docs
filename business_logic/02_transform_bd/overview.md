@@ -101,8 +101,8 @@ graph TD
 
 Convencion general:
 
-- `run_bd_\<tabla\>`: orquesta lectura, transformacion y carga
-- `run_bd_\<tabla\>_transform`: contiene la logica principal de armado
+- `run_bd_<tabla>`: orquesta lectura, transformacion y carga
+- `run_bd_<tabla>_transform`: contiene la logica principal de armado
 
 ---
 

@@ -2,69 +2,98 @@
 
 ## ¿Qué representa?
 
-Métricas analíticas avanzadas — el "BigData layer" del dashboard. Son KPIs derivados que cruzan múltiples tablas y períodos para responder preguntas más complejas que las del embudo simple.
+A pesar de su nombre, esta tabla **no calcula métricas analíticas avanzadas**, sino que calcula **el mismo embudo comercial diario** (`kpis_embudo_comercial`) pero **exclusivamente para leads generados por campañas de Big Data / Inteligencia Artificial (Lookalikes)**.
 
-Ejemplos de preguntas que responde:
-- ¿Cuál es el tiempo promedio entre captación y separación?
-- ¿Cuántos clientes vuelven a interactuar después de 30 días?
-- ¿Cuál es la tasa de cierre por asesor en el último trimestre?
+Permite evaluar si las audiencias generadas algorítmicamente (ej. perfiles "lookalike" o "similares" construidos a partir de data histórica) rinden mejor que las audiencias tradicionales a lo largo del embudo (Visitas, Citas, Separaciones, Ventas).
 
 ---
 
 ## Granularidad
 
-Variable según la métrica. Puede ser por proyecto-mes, por asesor-mes, o totales por período.
+```
+Una fila = (proyecto, fecha)
+```
+
+Igual que `kpis_embudo_comercial`, contiene registros diarios desde enero de 2017 hasta hoy.
 
 ---
 
-## Métricas típicas
+## Métricas que calcula
 
-(Las exactas dependen de cómo esté definido el SQL — consultar el código por la lista actual.)
+Son las mismas métricas básicas del embudo, pero el valor reflejado proviene **solo de clientes BigData**:
 
-| Categoría | Ejemplos |
-|---|---|
-| **Tiempo entre eventos** | Días promedio entre captación y primera visita, entre separación y venta |
-| **Recurrencia** | % de clientes que regresan, ratio de re-engagement |
-| **Conversion ratio avanzado** | Conversión multi-touch attribution, rate por cohorte |
-| **Velocidad** | Velocidad de cierre por asesor, por proyecto |
+- `CAPTACIONES`
+- `VISITAS`
+- `CITAS_GENERADAS`
+- `CITAS_CONCRETADAS`
+- `SEPARACIONES`
+- `VENTAS`
 
 ---
 
 ## ¿De dónde vienen los datos?
 
-Todas las `bd_*` que ya están en BigQuery. No se generan datos nuevos — solo se cruzan los existentes.
+Los datos vienen de las mismas tablas del embudo (`bd_clientes`, `bd_interacciones`, `bd_procesos`), con un filtro inicial estricto sobre los clientes.
+
+### La clave: `clientes_bigdata`
+
+Antes de calcular cualquier métrica, se crea un universo cerrado de clientes. Solo califican aquellos cuyo campo `utm_medium` (en `bd_clientes` o `bd_clientes_fechas_extension`) coincida con una **lista de campañas hardcoded**:
+
+```sql
+utm_medium IN (
+    'ATRIA - [LAL] - 031025',
+    'ATRIA LAL 2% 031125',
+    'ATRIA - [LAL 4%] - 051125',
+    'ATRIA - [LAL] - 030925',
+    'SUCRE - [LAL - 3%] - 281025',
+    'ROOSEVELT - [LAL] - 131025',
+    'Bigdata LAL 3 Dorms',
+    'Conj. Similar 1%',
+    'Conj. Similar 3%',
+    'LAL-Bigdata',
+    'Conj. Similar',
+    'LAL 5% -  ChatBot 30 a 60',
+    'LAL 5% -  Bigdata',
+    'Conj. Similar 2%',
+    'Conj. Similar 4%',
+    'Mirahome-LAL-Bigdata 2%'
+)
+```
+
+**Cualquier cliente que no esté en este listado queda excluido**. Luego, todas las visitas, separaciones y ventas se calculan haciendo un `INNER JOIN` contra esta lista de clientes aprobados.
 
 ---
 
 ## Lógica
 
 ```mermaid
-flowchart LR
-    A["Multiples bd_* via joins"] --> B["Window functions<br/>(LAG, LEAD, ROW_NUMBER)"]
-    B --> C["Date diffs<br/>tiempo entre eventos"]
-    C --> D["Agregaciones por cohorte"]
-    D --> E["INSERT INTO kpis_bigdata"]
+flowchart TD
+    A["bd_clientes"] --> B["Filtro por utm_medium<br/>(lista de campañas LAL/Bigdata)"]
+    B --> C["clientes_bigdata"]
+    
+    C -->|INNER JOIN| D["bd_interacciones<br/>(Visitas, Citas)"]
+    C -->|INNER JOIN| E["bd_procesos<br/>(Separaciones, Ventas)"]
+    
+    D --> F["Conteo por fecha"]
+    E --> F
+    
+    F --> G["Grilla maestra<br/>CROSS JOIN (Proyecto x Fecha)"]
+    G --> H["INSERT INTO kpis_bigdata"]
 ```
-
-A diferencia de los KPIs del embudo (que son `COUNT(*)` simples), aquí se usan operaciones más sofisticadas:
-- `LAG()` y `LEAD()` para comparar entre filas.
-- `DATE_DIFF` para tiempos entre eventos.
-- `PERCENTILE_CONT` para medianas y percentiles.
 
 ---
 
 ## Cosas a tener en cuenta
 
-- **Performance variable.** Algunas queries pueden ser lentas porque hacen window functions sobre datasets grandes.
-- **Sensible a outliers.** Un cliente con fechas muy extrañas (ej. fecha 1900) puede sesgar promedios. Conviene aplicar filtros en las queries.
-- **Si negocio cambia la definición de una métrica BigData, hay que ajustar el SQL en los 3 archivos.**
-- **Muchas métricas dependen de que las fechas estén bien cargadas en `bd_*`.** Si Sperant trae fechas como string en formato dudoso, puede haber métricas inconsistentes.
+- **Lista de campañas hardcoded.** Este es el mayor riesgo técnico. Si marketing lanza una nueva campaña Lookalike (ej. `LAL 6% - Noviembre`), **NO aparecerá en los dashboards** hasta que un ingeniero modifique el SQL manualmente para agregarla al `IN (...)`.
+- **INNER JOIN en procesos.** Si un proceso de separación existe pero el cliente no proviene de estas campañas, la separación no se cuenta. Esto es correcto para evaluar el canal, pero significa que los totales de esta tabla serán muy inferiores a los del embudo general.
+- **`correo != 'TEST@FB.COM'`**: Se excluyen los leads de prueba de Facebook.
 
 ---
 
 ## Referencia al código
 
-- Evolta: `calculate_kpis_bigdata_evolta(...)`.
-- Sperant: `calculate_kpis_bigdata_sperant(...)`.
-- Joined: `calculate_kpis_bigdata_sperant_evolta(...)`.
-- Schema: `dashboard_tables_helper.py` → `create_kpis_bigdata_table(...)`.
+- Evolta: `dashboard_operations_evolta.py` → `calculate_kpis_bigdata_evolta(...)`
+- Sperant: `dashboard_operations_sperant.py` → `calculate_kpis_bigdata_sperant(...)`
+- Joined: `dashboard_operations_sperant_evolta.py` → `calculate_kpis_bigdata_evolta_sperant(...)`
+- Schema destino: `dashboard_data.kpis_bigdata`

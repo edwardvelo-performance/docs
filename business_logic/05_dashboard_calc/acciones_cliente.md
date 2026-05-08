@@ -1,20 +1,18 @@
-# `acciones_cliente`
+# `acciones_cliente` — registro de interacciones cerradas
 
 ## ¿Qué representa?
 
-El **timeline de eventos** de cada cliente: una fila por cada evento que el cliente generó (visita, llamada, cita, separación, venta, devolución).
+A diferencia de lo que podría sugerir su nombre, esta tabla **no** es un timeline general de todos los eventos del cliente. En realidad, representa un registro de las **interacciones (tareas) cerradas o completadas** (`estado = '6'`) que tuvieron los clientes o prospectos con los asesores.
 
-Sirve para mostrar la "historia" de un cliente en orden cronológico cuando un asesor lo consulta.
+Esta tabla enriquece cada tarea completada con los datos del perfil del cliente (tipo de persona, nombres, nivel de interés, origen, fechas clave de su ciclo de vida como cuándo se separó o vendió). Sirve para auditar la gestión de tareas de los vendedores y analizar respuestas/satisfacción de los contactos.
 
 ---
 
 ## Granularidad
 
-```
-Una fila = un evento (interacción, proceso, proforma) de un cliente
-```
+**Una fila = Una interacción/tarea en estado '6' (Cerrada) de un cliente o prospecto.**
 
-Un mismo cliente puede tener decenas o cientos de filas a lo largo de su ciclo.
+Si un cliente tuvo 5 tareas completadas en su historial, aparecerá 5 veces en esta tabla.
 
 ---
 
@@ -22,78 +20,68 @@ Un mismo cliente puede tener decenas o cientos de filas a lo largo de su ciclo.
 
 | Tabla | Aporta |
 |---|---|
-| `bd_interacciones` | Visitas, llamadas, citas, mensajes |
-| `bd_procesos` | Separaciones, ventas, anulaciones |
-| `bd_proformas` | Emisión de proformas |
-| `bd_clientes` | Datos del cliente para enriquecer |
+| `bd_interacciones` | Es la tabla principal (filtro `estado = '6'`). Aporta la fecha de la acción, el tipo, la respuesta y las descripciones. |
+| `bd_clientes` | Datos demográficos y de contacto del cliente/prospecto. |
+| `bd_proyectos` | Identificación del proyecto y distrito. |
+| Subqueries varias sobre `bd_interacciones` | Cálculos de `Fecha_PrimeraAccion`, `Fecha_UltimaAccion`, y la última tarea vigente (`estado = '7'`). |
+| Subqueries sobre `bd_procesos` | Búsqueda de `FechaSeparacion`, `FechaVenta` y quién fue el `ReferidoPorUltimoProceso` para ese cliente. |
 
 ---
 
 ## Lógica
 
+### Diagrama de flujo
+
 ```mermaid
-flowchart LR
-    A["bd_interacciones"] --> U["UNION ALL"]
-    B["bd_procesos"] --> U
-    C["bd_proformas"] --> U
-    U --> N["Normalizar a esquema unico:<br/>id_cliente, fecha, tipo_evento, descripcion"]
-    N --> D["bd_clientes para enriquecer"]
-    D --> X["INSERT INTO acciones_cliente"]
+flowchart TD
+    A["bd_interacciones<br/>(estado = 6)"] --> J["JOIN bd_clientes y bd_proyectos"]
+    
+    B["Subquery: acciones_estado6<br/>(primera y última tarea cerrada)"] --> J
+    C["Subquery: tareas_estado7<br/>(última tarea vigente)"] --> J
+    D["Subquery: bd_procesos<br/>(fecha última separación y venta)"] --> J
+
+    J --> S1["Filtro: tipo_origen = CLIENTE"]
+    J --> S2["Filtro: tipo_origen = PROSPECTO"]
+    
+    S1 --> U["UNION ALL"]
+    S2 --> U
+    
+    U --> X["INSERT INTO acciones_cliente"]
 ```
 
-### Pasos
-1. **UNION ALL** entre las tres tablas (`bd_interacciones`, `bd_procesos`, `bd_proformas`).
-2. **Normalización**: cada evento se mapea a un esquema común con campos `tipo_evento`, `descripcion`, `fecha`, `responsable`.
-3. **Join** con `bd_clientes` para sumar datos del cliente.
-4. **Order by fecha** dentro del cliente para que la consulta sea fácil.
-
 ---
 
-## Esquema común de evento
+## Columnas destacadas
 
-| Columna | Qué guarda |
+| Categoría | Columnas principales |
 |---|---|
-| `id_cliente` | A quién pertenece |
-| `fecha_evento` | Cuándo ocurrió |
-| `tipo_evento` | INTERACCION, PROFORMA, SEPARACION, VENTA, DEVOLUCION |
-| `subtipo` | Detalle (ej. para INTERACCION: VISITA, LLAMADA) |
-| `descripcion` | Texto libre del evento |
-| `responsable` | Asesor que lo registró |
-| `id_unidad` | Unidad asociada (si aplica) |
-| `id_proyecto` | Proyecto |
-| `monto` | Si aplica (proforma, venta) |
+| **Estructura** | `Codigo` (id_cliente), `Proyecto`, `TipoPersona` (CLIENTE o PROSPECTO) |
+| **Cliente** | `Nombres`, `Apellidos`, `TipoDocumento`, `Celular`, `Correo`, `ComoSeEntero` |
+| **La Tarea Actual** | `Tipo_Accion` (nombre de la interacción), `Fecha_Accion`, `Tipo_Respuesta` (satisfactorio), `Descrip_Respuesta` |
+| **Historial Tareas** | `Fecha_PrimeraAccion`, `Fecha_UltimaAccion`, `Fecha_TareaNueva`, `EstadoTareaNueva` (Vigente o Cerrado) |
+| **Hitos de Venta** | `FechaSeparacion`, `FechaVenta` |
 
 ---
 
-## Reglas de negocio
+## Reglas de negocio importantes
 
-### 1. Eventos en orden cronológico
-La tabla puede tener miles de filas; los dashboards deben siempre `ORDER BY fecha_evento DESC` al consultar.
+### 1. Solo tareas cerradas (`estado = '6'`)
+La base central de esta tabla solo extrae interacciones históricas. Tareas vigentes o pendientes (`estado = '7'`) no generan filas propias aquí, solo se usan en las subqueries para indicar si el cliente tiene una "Tarea Nueva Vigente".
 
-### 2. Devoluciones como evento separado
-Una venta devuelta genera **dos filas**:
-- Una de tipo VENTA (cuando se vendió).
-- Otra de tipo DEVOLUCION (cuando se devolvió).
+### 2. Separación de Clientes y Prospectos
+La query utiliza un `UNION ALL` para calcular los datos de los clientes que nacieron como `CLIENTE` separados de los que nacieron como `PROSPECTO`, asegurando que el cruce de orígenes no rompa el performance o los JOINs a `bd_clientes`.
 
-### 3. No incluye eventos del cliente fuera del CRM
-Si el cliente envió un email no registrado en Sperant/Evolta, no aparece. Solo se muestran eventos del CRM.
+### 3. Sub-estados de la "Tarea Nueva"
+Si un cliente tiene al menos una tarea en estado `7` (`tareas_estado7`) cuya fecha es mayor al día de hoy, el campo `EstadoTareaNueva` dirá `VIGENTE`. En caso contrario, dirá `CERRADO`.
 
-### 4. Filtros para reducir ruido
-Algunos tipos de interacción menores (ej. "AUTO-LOG") pueden excluirse para no saturar la timeline.
-
----
-
-## Cosas a tener en cuenta
-
-- **Tabla muy grande.** Multiplicar el número de clientes por su cantidad promedio de eventos.
-- **Ordenamiento crítico.** Si un dashboard no ordena por fecha, la timeline va a verse desordenada.
-- **Algunos eventos pueden tener fecha NULL** (ej. proceso sin fecha_inicio). Se filtran o se les asigna fecha del registro de auditoría.
+### 4. Fechas de Separación y Venta
+A cada tarea cerrada del cliente se le pega, a modo referencial, la fecha máxima de su última separación o venta extraída desde `bd_procesos`. Esto permite saber si esta interacción ocurrió antes o después de la conversión real.
 
 ---
 
 ## Referencia al código
 
-- Evolta: `calculate_acciones_data_evolta(...)`.
-- Sperant: `calculate_acciones_data_sperant(...)`.
-- Joined: `calculate_acciones_data_sperant_evolta(...)`.
-- Schema: `dashboard_tables_helper.py` → `create_acciones_cliente_table(...)`.
+- Origen Evolta: `infra/src/etl/dashboard_operations_evolta.py` → `calculate_acciones_data_evolta(...)`
+- Origen Sperant: `infra/src/etl/dashboard_operations_sperant.py` → `calculate_acciones_data_sperant(...)`
+- Origen Joined: `infra/src/etl/dashboard_operations_sperant_evolta_prueba2.py` → `calculate_acciones_data_evolta_sperant(...)`
+- Definición de Schema: `infra/src/etl/dashboard_tables_helper.py` → `create_acciones_cliente_table(...)`

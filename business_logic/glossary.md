@@ -25,6 +25,9 @@ Prefijo que usa **Evolta** en sus tablas raw (Business Intelligence). Ejemplo: `
 ### Blacklist (de unidades)
 Lista de unidades que negocio quiere **ocultar del stock comercial** aunque estén marcadas como disponibles. Se carga desde `CONSOLIDADO_BLACKLIST_UNIDADES.csv` en GCS. Casos típicos: unidades en disputa legal, problemas constructivos, no comercializables temporalmente.
 
+### Bigdata / LAL (Lookalike)
+Campañas específicas de marketing digital que utilizan algoritmos de inteligencia artificial para buscar audiencias similares (lookalikes) a clientes históricos. En el ETL, los leads que provienen de estas campañas (identificados vía `utm_medium` hardcodeados) se filtran y aíslan en la tabla `kpis_bigdata` para evaluar el rendimiento particular de este canal frente al embudo comercial tradicional.
+
 ---
 
 ## C

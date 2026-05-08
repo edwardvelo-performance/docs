@@ -51,11 +51,11 @@ Cada función `create_*` corresponde a una tabla en `dashboard_data`. Resumen:
 |---|---|---|
 | `create_kpis_comercial_table` | `kpis_embudo_comercial` | KPIs del embudo: captaciones, separaciones, ventas, visitas, leads, citas — por mes y proyecto |
 | `create_kpis_comercial_funnel_table` | `kpis_comercial_funnel` | Vista funnel del embudo |
-| `create_kpis_medio_comercial_table` | `kpis_medio_comercial` | KPIs por medio de captación |
-| `create_kpis_medio_comercial_detalle_table` | `kpis_medio_comercial_detalle` | Detalle por canal/campaña |
-| `create_kpis_medio_proforma_comercial_table` | `kpis_medio_proforma_comercial` | KPIs de proformas por medio |
+| `create_kpis_medio_comercial_table` | `kpis_medio_embudo_comercial` | KPIs por medio de captación |
+| `create_kpis_medio_comercial_detalle_table` | `kpis_medio_embudo_comercial_detalle` | Detalle por canal/campaña |
+| `create_kpis_medio_proforma_comercial_table` | `kpis_medio_proforma_embudo_comercial` | KPIs de proformas por medio |
 | `create_kpis_bigdata_table` | `kpis_bigdata` | Métricas BigData |
-| `create_canal_digital_table` | `canal_digital` | Performance por canal digital |
+| `create_canal_digital_table` | `kpis_canal_digital` | Performance por canal digital |
 
 ### Agregaciones de cliente
 
@@ -196,7 +196,7 @@ Las tablas `*_historico` están particionadas por día sobre `fecha_creacion`. B
 | Caso | Qué hacer |
 |---|---|
 | Agregar una columna nueva a un dashboard | Sumar la columna al `schema_dict` correspondiente. La capa de cálculo (capa 6) debe poblarla. |
-| Crear un dashboard nuevo | Agregar una nueva función `create_\<nombre\>_table(...)` y registrarla en `dashboard_runner.py`. |
+| Crear un dashboard nuevo | Agregar una nueva función `create_<nombre>_table(...)` y registrarla en `dashboard_runner.py`. |
 | Cambiar tipo de una columna | Editar el `schema_dict`. Cuidado: la próxima corrida hará TRUNCATE primero, así que no hay migración. Para tablas históricas hay que decidir si dropear o no. |
 | Renombrar una columna | Cambiar nombre en `schema_dict` + en la SQL de la capa 6. La historización va a ALTER ADD COLUMN nueva (no renombra). Idealmente borrar la histórica vieja antes. |
 
