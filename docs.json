@@ -141,6 +141,19 @@
               "business_logic/05_dashboard_calc/detalles/ventas",
               "business_logic/05_dashboard_calc/detalles/visitas"
             ]
+          },
+          {
+            "group": "Capa 6: Reportes Power BI",
+            "pages": [
+              "business_logic/06_powerbi_reports/reporte_embudo",
+              "business_logic/06_powerbi_reports/graficos_reporte_embudo",
+              "business_logic/06_powerbi_reports/graficos_pie_de_medios",
+              "business_logic/06_powerbi_reports/graficos_gestion_comercial",
+              "business_logic/06_powerbi_reports/graficos_reporte_consolidado",
+              "business_logic/06_powerbi_reports/graficos_calidad_de_leads",
+              "business_logic/06_powerbi_reports/graficos_perfil_del_comprador",
+              "business_logic/06_powerbi_reports/modelo_datos_embudo"
+            ]
           }
         ]
       }
