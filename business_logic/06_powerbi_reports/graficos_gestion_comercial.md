@@ -633,6 +633,161 @@ Si el resultado no cuadra, revisar primero:
 
 ---
 
+## Visual 3: Matriz - Gestion diaria del equipo de asesores
+
+### Objetivo
+
+Muestra la actividad diaria del equipo de asesores dentro del mes seleccionado. El visual sirve para revisar, dia por dia, como se distribuyen los leads, contactos, citas, visitas, separaciones y ventas.
+
+Lectura de negocio:
+
+```text
+Cada columna representa un dia del mes.
+Cada fila representa una metrica operativa diaria.
+La matriz permite detectar dias con baja actividad, picos de gestion o quiebres entre etapas del embudo.
+```
+
+---
+
+### Configuracion del visual
+
+Tipo de visual:
+
+```text
+Matriz
+```
+
+Campos:
+
+| Bucket | Campo |
+|---|---|
+| Columnas | `cliente_diario_comercial[fecha]` > `Day` |
+| Valores | `LEADS` |
+| Valores | `CONTACTADOS` |
+| Valores | `CONTACTOS EFECTIVOS` |
+| Valores | `CITAS GENERADAS` |
+| Valores | `CITAS CONCRETADAS` |
+| Valores | `VISITAS` |
+| Valores | `SEPARACIONES` |
+| Valores | `VENTAS` |
+
+Nota de configuracion:
+
+```text
+Aunque el bucket de filas no requiere una dimension explicita, las metricas se muestran como filas por el formato de matriz.
+Las columnas usan el nivel Day de la fecha para abrir el mes seleccionado en dias.
+```
+
+---
+
+### Tabla involucrada
+
+| Tabla | Uso |
+|---|---|
+| `cliente_diario_comercial` | Aporta las metricas comerciales a nivel diario |
+| `DimProyectoMes` | Propaga filtros de grupo, team, empresa, proyecto y mes mediante `ProjectMonthKey` |
+| `CalendarioMes` | Controla el filtro de Ano-Mes de la pagina |
+
+Grano esperado de la tabla:
+
+```text
+fecha + proyecto + asesor/usuario
+```
+
+El visual agrega ese grano a nivel de dia, respetando los filtros superiores de grupo, team, empresa, proyecto y mes.
+
+Relaciones esperadas:
+
+```text
+DimProyectoMes[ProjectMonthKey] -> cliente_diario_comercial[ProjectMonthKey]
+CalendarioMes[mes_inicio]      -> DimProyectoMes[mes_inicio]
+```
+
+---
+
+### Filtros del objeto visual
+
+Filtros aplicados:
+
+| Filtro | Condicion |
+|---|---|
+| `CITAS_CONCRETADAS` | todos |
+| `CITAS_GENERADAS` | todos |
+| `CONTACTADOS` | todos |
+| `CONTACTOS EFECTIVOS` | todos |
+| `fecha - Day` | todos |
+| `LEADS` | todos |
+| `ProyectoTieneDatos` | es 1 |
+| `SEPARACIONES` | todos |
+| `SUM(CAPTACIONES_TOTAL)` | no esta en blanco |
+| `VENTAS` | todos |
+| `VISITAS` | todos |
+
+Filtros clave:
+
+```text
+ProyectoTieneDatos = 1
+SUM(CAPTACIONES_TOTAL) no esta en blanco
+```
+
+Estos filtros evitan mostrar proyectos sin datos comerciales y dias sin actividad base.
+
+---
+
+### Metricas mostradas
+
+| Fila del visual | Campo base esperado |
+|---|---|
+| `LEADS` | `cliente_diario_comercial[CAPTACIONES_TOTAL]` |
+| `CONTACTADOS` | `cliente_diario_comercial[CONTACTOS_TOTAL]` |
+| `CONTACTOS EFECTIVOS` | `cliente_diario_comercial[CONTACTOS_EFECTIVOS]` |
+| `CITAS GENERADAS` | `cliente_diario_comercial[CITAS_GENERADAS]` |
+| `CITAS CONCRETADAS` | `cliente_diario_comercial[CITAS_CONCRETADAS]` |
+| `VISITAS` | `cliente_diario_comercial[VISITAS]` |
+| `SEPARACIONES` | `cliente_diario_comercial[SEPARACIONES]` |
+| `VENTAS` | `cliente_diario_comercial[VENTAS]` |
+
+Las metricas se leen como sumas dentro del contexto filtrado:
+
+```text
+Valor del dia N = SUM(metrica diaria)
+                  filtrado por mes, proyecto, empresa, team y grupo seleccionados
+                  donde DAY(fecha) = N
+```
+
+---
+
+### Validacion rapida
+
+Para validar un dia especifico:
+
+```text
+Seleccionar el mismo Ano-Mes, grupo, team, empresa y proyecto.
+Filtrar cliente_diario_comercial por DAY(fecha).
+Sumar la metrica revisada.
+Comparar el resultado con la celda de la matriz.
+```
+
+Validaciones recomendadas:
+
+| Validacion | Que debe cumplirse |
+|---|---|
+| Total mensual de leads | Suma diaria de `CAPTACIONES_TOTAL` debe cuadrar con el total mensual esperado |
+| Citas | `CITAS_CONCRETADAS` no debe superar `CITAS_GENERADAS` sin una justificacion de datos |
+| Ventas | Dias con ventas deben tener trazabilidad en las etapas previas del embudo |
+| Proyecto sin datos | Si `ProyectoTieneDatos = 0`, el proyecto no debe aparecer en la matriz |
+
+Problemas comunes:
+
+| Sintoma | Revision |
+|---|---|
+| Dia no aparece | Revisar si `CAPTACIONES_TOTAL` esta en blanco para ese dia |
+| Valores duplicados | Revisar si el grano diario incluye mas de una fila por asesor/proyecto y si corresponde agregarlas |
+| Mes no coincide | Revisar relacion con `CalendarioMes` y `DimProyectoMes` |
+| Proyecto no filtra | Revisar `ProjectMonthKey` en `cliente_diario_comercial` |
+
+---
+
 ## Resumen
 
 ```text
