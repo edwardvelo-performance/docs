@@ -77,6 +77,23 @@ Grupo inmobiliario
     -> Responsable
 ```
 
+Comportamiento desplegable:
+
+```text
+Nivel contraido: muestra el total agregado por grupo inmobiliario o proyecto.
+Nivel expandido: abre el detalle interno hasta responsable.
+```
+
+En la lectura operativa, esto permite iniciar con una vista resumida del proyecto y luego identificar que responsable o subgrupo explica el resultado. Por ejemplo, un proyecto puede tener buen volumen total, pero al desplegarlo se puede ver si la gestion esta concentrada en un responsable, en un canal/equipo o si hay responsables con bajo avance.
+
+Puntos a considerar al analizar la matriz desplegada:
+
+| Nivel | Que responde |
+|---|---|
+| Grupo inmobiliario | Como va el grupo completo dentro del mes seleccionado |
+| Proyecto | Que proyectos concentran volumen, conversion o caidas del embudo |
+| Responsable | Que asesor/responsable explica el resultado del proyecto |
+
 ---
 
 ### Tabla involucrada
@@ -422,6 +439,22 @@ La jerarquia de filas permite analizar:
 Usuario
   -> Proyecto
 ```
+
+Comportamiento desplegable:
+
+```text
+Nivel contraido: muestra el acumulado mensual por asesor.
+Nivel expandido: abre los proyectos asociados a ese asesor.
+```
+
+La matriz debe leerse primero por asesor y luego por proyecto. El nivel de asesor permite comparar productividad individual; el nivel desplegado por proyecto permite entender si el rendimiento viene de un proyecto especifico o si el asesor mantiene un comportamiento consistente en varios proyectos.
+
+Puntos a considerar al analizar la matriz desplegada:
+
+| Nivel | Que responde |
+|---|---|
+| Usuario | Cuanto gestiona y convierte el asesor en el mes |
+| Proyecto | En que proyectos se concentra su gestion o donde cae la conversion |
 
 ---
 
