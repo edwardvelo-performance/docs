@@ -154,6 +154,17 @@
               "business_logic/06_powerbi_reports/graficos_perfil_del_comprador",
               "business_logic/06_powerbi_reports/modelo_datos_embudo"
             ]
+          },
+          {
+            "group": "Capa 7: Manual comercial Power BI",
+            "pages": [
+              "business_logic/07_power_bi_sales_funnel/overview",
+              "business_logic/07_power_bi_sales_funnel/embudo_marketing",
+              "business_logic/07_power_bi_sales_funnel/pie_de_medios",
+              "business_logic/07_power_bi_sales_funnel/gestion_comercial",
+              "business_logic/07_power_bi_sales_funnel/analisis_comercial",
+              "business_logic/07_power_bi_sales_funnel/detalles"
+            ]
           }
         ]
       }
