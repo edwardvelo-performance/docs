@@ -16,6 +16,7 @@
           {
             "group": "Visión General",
             "pages": [
+              "business_logic/handover",
               "business_logic/overview",
               "business_logic/glossary",
               "business_logic/config_reference"

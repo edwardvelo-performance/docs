@@ -7,6 +7,6 @@ Sitio publicado: https://performancerealstate.mintlify.app
 - Índice: [`business_logic/overview.md`](business_logic/overview.md)
 - Glosario: [`business_logic/glossary.md`](business_logic/glossary.md)
 - Nav Mintlify: [`docs.json`](docs.json)
-- Traspaso de este sitio: [`HANDOVER.md`](HANDOVER.md)
+- Traspaso de este sitio: [`business_logic/handover.md`](business_logic/handover.md) → https://performancerealstate.mintlify.app/business_logic/handover
 
 Esto **no** documenta Prefect (`etl_prefect`), el monitor Guardian (`up-to-date`) ni AIDASH (`aidash-pi`). AIDASH sí **consume** estas páginas en runtime.
